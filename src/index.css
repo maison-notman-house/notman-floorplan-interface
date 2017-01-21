@@ -1,0 +1,114 @@
+        body {
+            margin: 0;
+            background-color: transparent;
+        }
+
+
+
+
+        svg {
+            height: 100vh;
+            width: 100vw;
+        }
+        .poly {
+            stroke-width: 2;
+            stroke: #606060;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
+        .step {
+            stroke-width: 2;
+            stroke: #000000;
+            stroke-linejoin: round;
+            stroke-linecap: round;
+        }
+
+        .poly.roof {
+            opacity: 1;
+            stroke-width: 2;
+            stroke: #000000;
+            stroke-linejoin: round;
+            fill: #f0f0f0;
+        }
+        .poly {
+            opacity: 1;
+        }
+        .poly.floor {
+            stroke-width: 8;
+            stroke: #606060;
+            stroke-linejoin: round;
+            fill: #f0f0f0;
+        }
+        .poly.door {
+            stroke: #c0c0c0;
+            stroke-width: 8;
+            stroke-linejoin: miter;
+        }
+        .poly.outline {
+            fill: #f8f8f8;
+            stroke-width: 8;
+            stroke-linejoin: round;
+            stroke: #909090;
+        }
+
+        .step, .stairs-line {
+            stroke-width: 4;
+            stroke: #909090;
+            stroke-linejoin: round;
+        }
+
+        .room-walls, .other-walls {
+            stroke-width: 4;
+            stroke: #606060;
+            stroke-linejoin: round;
+            fill: transparent;
+        }
+
+        .room-walls {
+            fill: #f0f0f0;
+        }
+
+        .room-door {
+            stroke: black;
+            stroke: #c0c0c0;
+            stroke-width: 4;
+            stroke-linejoin: miter;
+        }
+
+        .floorplan {
+            transform: translate(25px,25px);
+        }
+
+        .outline {
+            stroke-width: 4;
+            stroke: #606060;
+            stroke-linejoin: round;
+            fill: #f8f8f8;
+        }
+
+        .room-walls:hover {
+            fill: lavender;
+            transition: fill 0.2s;
+        }
+
+        .meeting-room .room-walls {
+            fill: lavender;
+        }
+
+        .room-label {
+            text-anchor: middle;
+            font-size: 10px;
+            font-family: arial;
+            font-weight: bold;
+            transform: translate(0, 3px);
+            fill: #909090;
+        }
+
+
+.circle-marker {
+    fill: green;
+}
+
+.highlight .room-walls {
+  fill: lavender;
+}
