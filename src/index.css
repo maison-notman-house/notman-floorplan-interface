@@ -3,12 +3,20 @@
             background-color: transparent;
         }
 
+        .columns {
+            display: flex;
+            flex-direction: row;
+        }
 
+        .tenant-list {
+            padding: 20px;
+            width: 400px;
+        }
 
 
         svg {
             height: 100vh;
-            width: 100vw;
+            width: 500px;
         }
         .poly {
             stroke-width: 2;
@@ -105,10 +113,15 @@
         }
 
 
-.circle-marker {
+.marker {
     fill: green;
 }
 
 .highlight .room-walls {
-  fill: lavender;
+    transition: 0.5s all;
+  fill: #909090;
+}
+.highlight .room-label {
+    transition: 0.5s all;
+    fill: white;
 }

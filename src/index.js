@@ -2,9 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import building from './building.json';
 import Floorplan from './Floorplan';
+import {sortBy} from 'lodash';
 import './index.css';
-
-const roomList = building.hospitalFloor2.rooms.map(r => {
+``
+const roomList = sortBy(building.hospitalFloor2.rooms, 'id').map(r => {
   return <div onClick={handleClick.bind(this, r.id)}>
     <span>{r.label}</span>
     <span>{r.id}</span>
@@ -20,10 +21,12 @@ let highlightRoomId;
 function render() {
 
   ReactDOM.render(
-    <div>
+    <div className="columns">
+      <div className="tenant-list">
       {roomList}
+      </div>
       <svg>
-        <Floorplan highlight={highlightRoomId} floor={building.hospitalFloor2} />
+        <Floorplan marker={[20, 30]} highlight={highlightRoomId} floor={building.hospitalFloor2} />
       </svg>
     </div>,
     document.getElementById('root')

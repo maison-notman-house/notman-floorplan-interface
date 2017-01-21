@@ -1,11 +1,25 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
-import logo from './logo.svg';
-import './App.css';
 import {get} from 'lodash';
+
+function Marker({position}) {
+  return <circle
+    className="marker"
+    r={3}
+    cx={position[0]}
+    cy={position[1]}
+  />;
+}
 
 class Floorplan extends Component {
   render() {
+
+    const marker = get(this.props, 'marker');
+    let markerElement;
+    if (marker) {
+      markerElement = <Marker position={marker}/>;
+    }
+
     const outlineData = get(this.props, 'floor.outline', []);
     const outline = <polygon className="outline" points={makePointsString(outlineData)}/>
 
@@ -28,6 +42,7 @@ class Floorplan extends Component {
         {rooms}
         {decoratives}
         {doorElements}
+        {markerElement}
       </g>
     );
   }
