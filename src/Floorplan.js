@@ -1,24 +1,121 @@
 import React, { Component } from 'react';
 import classNames from 'classnames';
-import {get} from 'lodash';
+import {forEach, get, isArray} from 'lodash';
 
-function Marker({position}) {
-  return <circle
-    className="marker"
-    r={3}
-    cx={position[0]}
-    cy={position[1]}
-  />;
+function getDoorLocation(floor, id) {
+  let door = floor.doors.find(d => d.id === id);
+  if (!door) {
+    for (let room of floor.rooms) {
+      for (let d of room.doors) {
+        if (d.id === id) {
+          door = d;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!door) {
+    return null;
+  }
+  let doorPoints;
+  if (isArray(door)) {
+    doorPoints = door;
+  } else {
+    doorPoints = door.points;
+  }
+  return getCenter(doorPoints);
+}
+
+class Marker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+  handleAnimationTick = () => {
+    this.setState({animationState: !this.state.animationState});
+  }
+
+  componentWillUnmount() {
+    this.clearInterval(this.animationTimer);
+  }
+
+  componentDidMount() {
+    this.animationTimer = setInterval(this.handleAnimationTick, 600)
+  }
+
+  render() {
+
+
+    const position = transformPoints([this.props.position])[0];
+
+    let strokeWidth = 3;
+    if (this.props.alarm) {
+      strokeWidth = this.state.animationState ? 3 : 9 ;
+    return <g>
+      <circle
+        className="marker-inner"
+        r={3}
+        cx={position[0]}
+        cy={position[1]}
+        style={{fill: '#303030'}}
+      />
+      <circle
+        className="marker-outer"
+        r={8}
+        cx={position[0]}
+        cy={position[1]}
+        style={{fill: 'transparent', strokeWidth, stroke: 'red'}}
+      />
+    </g>;
+  } else {
+    return <g>
+      <circle
+        className="temp-circle"
+        cx={position[0]}
+        cy={position[1]}
+        r="11"
+        />
+      <text
+          x={position[0]}
+          y={position[1]}
+          className="marker-text"
+        >{this.props.value}</text>
+    </g>
+  }
+  }
 }
 
 class Floorplan extends Component {
-  render() {
 
-    const marker = get(this.props, 'marker');
-    let markerElement;
-    if (marker) {
-      markerElement = <Marker position={marker}/>;
+  constructor(props) {
+    super(props);
+    this.state = {};
+  }
+
+  handleClickRoom = (id) => {
+    console.log('Clicked on ', id);
+    this.setState({highlight: id});
+  }
+
+  render() {
+    // const marker = get(this.props, 'marker');
+      let markerElements = [];
+
+    forEach(this.props.sensors, (doorSensor, doorId) => {
+      // const doorSensor = this.props.sensors[doorId];
+      
+      if (doorSensor) {
+        let alarm = (Date.now() - doorSensor.lastMotionTime < 5000);
+
+        // console.log('ARA')
+        let position = getDoorLocation(this.props.floor, doorId);
+        if (position) {
+        let value = Math.round(doorSensor.temperature);
+        markerElements.push(<Marker alarm={alarm} value={value} position={position}/>);
+        }
     }
+    });
 
     const outlineData = get(this.props, 'floor.outline', []);
     const outline = <polygon className="outline" points={makePointsString(outlineData)}/>
@@ -27,13 +124,15 @@ class Floorplan extends Component {
     const stairs = stairsData.map(stairs => <Stairs stairs={stairs}/>);
 
     const roomsData = get(this.props, 'floor.rooms', []);
-    const rooms = roomsData.map(room => <Room highlight={room.id === this.props.highlight}room={room}/>);
+    const rooms = roomsData.map(room => <Room highlight={room.id === this.props.highlight || room.id === this.state.highlight}room={room} onClick={this.handleClickRoom.bind(null, room.id)}/>);
 
     const decorativesData = get(this.props, 'floor.decoratives', []);
     const decoratives = decorativesData.map(d => <Decorative decorative={d}/>);
 
     const doorsData = get(this.props, 'floor.doors');
-    const doorElements = doorsData.map(door => <Door points={door}/>);
+    const doorElements = doorsData.map(door => {
+      <Door points={door}/>
+    });
 
     return (
       <g className="floorplan">
@@ -42,7 +141,7 @@ class Floorplan extends Component {
         {rooms}
         {decoratives}
         {doorElements}
-        {markerElement}
+        {markerElements}
       </g>
     );
   }
@@ -63,9 +162,8 @@ function Stairs({stairs}) {
   </g>;
 }
 
-function Room({room, highlight}) {
-  console.log(room.id, highlight);
-  return renderRoom(room, highlight);
+function Room({room, highlight, onClick}) {
+  return renderRoom(room, highlight, onClick);
 }
 
 function Door({points, id}) {
@@ -154,7 +252,7 @@ function translatePoints(points, offset) {
 
 
 
-function renderRoom(roomObject, highlight) {
+function renderRoom(roomObject, highlight, onClick) {
     var walls = get(roomObject, 'walls', []);
     var doors = get(roomObject, 'doors', []);
 
@@ -167,8 +265,17 @@ function renderRoom(roomObject, highlight) {
     // groupElement.appendChild(wallsElement);
     // groupElement.setAttribute('id', 'room-' + roomObject.id);
 
-    const doorsElements = doors.map((doorPoints, i) => {
-      return <Door points={doorPoints} id={roomObject.id + '-' + i}/>;
+    const doorsElements = doors.map((door, i) => {
+      let doorPoints;
+      let id;
+      if (isArray(door)) {
+        doorPoints = door;
+        id = roomObject.id + '-' + i;
+      } else {
+        doorPoints = door.points;
+        id = door.id;
+      }
+      return <Door  points={doorPoints} id={id}/>;
     });
 
     // var text = createSVGElement('text', 'room-label');
@@ -186,11 +293,13 @@ function renderRoom(roomObject, highlight) {
 
     const wallsElement = <polygon id={'walls-' + roomObject.id} className="room-walls" points={makePointsString(walls)}/>
     const groupClassName = classNames({highlight: highlight});
-    console.log('highlight', roomObject.id, highlight);
+    const clickMask = <polygon style={{fill: 'transparent'}} points={makePointsString(walls)} onClick={onClick.bind(roomObject.id)}/>;
+    // console.log('highlight', roomObject.id, highlight);
     return <g id={'room-' + roomObject.id} data-highlight={highlight} className={groupClassName}>
       {wallsElement}
       {doorsElements}
       {textLabel}
+      {clickMask}
     </g>;
 }
 
